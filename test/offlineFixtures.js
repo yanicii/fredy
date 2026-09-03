@@ -134,9 +134,30 @@ export function buildFetchMock() {
   let flatfoxListings = null;
   let wentzelDrListing = null;
   let wentzelDrDetail = null;
+  let portalListing = null;
+  let portalDetail = null;
 
   return async (url, options) => {
     const urlStr = String(url);
+
+    // The ImmoScout24 portal is read in three steps - list page for a session id, a POST that
+    // stores the sort, then the pages - and every one of them is served the same sorted fixture,
+    // except later pages, which are empty so the paging ends where the fixture does.
+    if (urlStr.includes('portal.immobilienscout24.de/ergebnisliste/')) {
+      if (portalListing == null) {
+        portalListing = (await tryReadFile(path.join(FIXTURES_DIR, 'immoscoutPortal.html'))) ?? '';
+      }
+      const isLaterPage = /\/ergebnisliste\/\d+\/([2-9]|\d{2,})/.test(urlStr);
+      const html = isLaterPage ? '<ul class="result__list"></ul>' : portalListing;
+      return { ok: true, status: 200, text: () => Promise.resolve(html) };
+    }
+
+    if (urlStr.includes('portal.immobilienscout24.de/expose/')) {
+      if (portalDetail == null) {
+        portalDetail = (await tryReadFile(path.join(FIXTURES_DIR, 'immoscoutPortal_detail.html'))) ?? '';
+      }
+      return { ok: true, status: 200, text: () => Promise.resolve(portalDetail) };
+    }
 
     // Wentzel Dr. posts its search to WordPress' admin-ajax.php and gets the rendered cards back.
     // The fixture is one page; any later page is answered empty so the provider's paging stops

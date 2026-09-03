@@ -177,7 +177,7 @@ the platform into Fredy.\
 ⚠️ Always make sure the search results are sorted by **date**, so Fredy picks up the newest
 listings first.
 
-Fredy ships with 21 providers:
+Fredy ships with 23 providers:
 
 **🇩🇪 Germany**
 
@@ -189,7 +189,7 @@ Fredy ships with 21 providers:
 | IMAXX | Immowelt | Schwarzes Brett Bremen |
 | InBerlinWohnen | Kleinanzeigen | Sparkasse Immobilien |
 | McMakler | Wg gesucht | Wentzel Dr. |
-| Groth & Schneider | | |
+| Groth & Schneider | ImmoScout24 Portal | Thor |
 
 **🇦🇹 Austria** · willhaben  
 **🇨🇭 Switzerland** · Flatfox

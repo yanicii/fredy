@@ -56,6 +56,8 @@ export const PROVIDER_SIZE_ORDER = [
   'regionalimmobilien24',
   'wentzelDr',
   'grothSchneider',
+  'immoscoutPortal',
+  'thor',
   'inberlinwohnen',
   'schwarzesbrett',
   // Austria
