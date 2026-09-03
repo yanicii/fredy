@@ -55,6 +55,7 @@ export const PROVIDER_SIZE_ORDER = [
   'imaxx',
   'regionalimmobilien24',
   'wentzelDr',
+  'grothSchneider',
   'inberlinwohnen',
   'schwarzesbrett',
   // Austria
