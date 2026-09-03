@@ -6,9 +6,12 @@
 import { Empty, Table, Button, Typography } from '@douyinfe/semi-ui-19';
 import { IconDelete, IconEdit } from '@douyinfe/semi-icons';
 import { useTranslation } from '../../services/i18n/i18n.jsx';
+import { useSelector } from '../../services/state/store';
+import { providerDisplayName } from '../../services/jobs/providerName.js';
 
 export default function ProviderTable({ providerData = [], onRemove, onEdit } = {}) {
   const t = useTranslation();
+  const providers = useSelector((state) => state.provider);
   const { Text } = Typography;
   return (
     <Table
@@ -18,6 +21,8 @@ export default function ProviderTable({ providerData = [], onRemove, onEdit } = 
         {
           title: t('provider.tableColumnName'),
           dataIndex: 'name',
+          // an entry saved over the API carries no name, so the row is resolved rather than read
+          render: (_, entry) => providerDisplayName(entry, providers),
         },
         {
           title: t('provider.tableColumnUrl'),
