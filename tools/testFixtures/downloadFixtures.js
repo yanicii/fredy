@@ -181,6 +181,44 @@ async function downloadFlatfoxFixtures(url) {
   console.log('  Saved flatfox_listings.json');
 }
 
+/**
+ * Wentzel Dr. renders its search through WordPress' admin-ajax.php, so the fixture is that
+ * endpoint's answer for the configured search rather than the search page itself, which is the
+ * same unfiltered ten cards whatever the url says. The detail fixture is the first card's exposé.
+ *
+ * @param {import('../../lib/types/providerConfig.js').ProviderConfig} runConfig the initialized provider config
+ * @returns {Promise<void>}
+ */
+async function downloadWentzelDrFixtures(runConfig) {
+  console.log('\nDownloading wentzelDr...');
+
+  const { searchFiltersOf, fetchListingPage } = await import('../../lib/provider/wentzelDr.js');
+  const html = await fetchListingPage(searchFiltersOf(runConfig.url), 1);
+  if (!html) {
+    console.warn('  Failed to download wentzelDr listing page');
+    return;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, 'wentzelDr.html'), html, 'utf-8');
+  console.log('  Saved wentzelDr.html');
+
+  const detailUrl = extractFirstDetailUrl(html, runConfig);
+  if (!detailUrl) {
+    console.warn('  Could not find detail URL in wentzelDr list page');
+    return;
+  }
+
+  console.log(`  Downloading wentzelDr detail (${detailUrl})...`);
+  const detailResponse = await fetch(detailUrl, { headers: { 'User-Agent': BROWSER_USER_AGENT } });
+  if (!detailResponse.ok) {
+    console.warn(`  Failed to download wentzelDr detail: ${detailResponse.statusText}`);
+    return;
+  }
+
+  await writeFile(path.join(FIXTURES_DIR, 'wentzelDr_detail.html'), await detailResponse.text(), 'utf-8');
+  console.log('  Saved wentzelDr_detail.html');
+}
+
 async function downloadImmoscoutFixtures(mobileApiUrl) {
   console.log('\nDownloading immoscout...');
 
@@ -482,6 +520,9 @@ async function main() {
         break;
       case 'flatfox':
         await downloadFlatfoxFixtures(runConfig.url);
+        break;
+      case 'wentzelDr':
+        await downloadWentzelDrFixtures(runConfig);
         break;
       default:
         await downloadHtmlProvider(name, runConfig, launchBrowser, closeBrowser, puppeteerExtractor);

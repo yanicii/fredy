@@ -132,9 +132,31 @@ export function buildFetchMock() {
   let willhabenHtml = null;
   let flatfoxPins = null;
   let flatfoxListings = null;
+  let wentzelDrListing = null;
+  let wentzelDrDetail = null;
 
-  return async (url) => {
+  return async (url, options) => {
     const urlStr = String(url);
+
+    // Wentzel Dr. posts its search to WordPress' admin-ajax.php and gets the rendered cards back.
+    // The fixture is one page; any later page is answered empty so the provider's paging stops
+    // where the live site's would.
+    if (urlStr.includes('wentzel-dr.de/wp-admin/admin-ajax.php')) {
+      if (wentzelDrListing == null) {
+        wentzelDrListing = (await tryReadFile(path.join(FIXTURES_DIR, 'wentzelDr.html'))) ?? '';
+      }
+      const body = String(options?.body ?? '');
+      const isLaterPage = /pagenum/.test(decodeURIComponent(body));
+      const html = isLaterPage ? '<div class="frymo-listing"></div>' : wentzelDrListing;
+      return { ok: true, status: 200, text: () => Promise.resolve(html) };
+    }
+
+    if (urlStr.includes('wentzel-dr.de/immobilie/')) {
+      if (wentzelDrDetail == null) {
+        wentzelDrDetail = (await tryReadFile(path.join(FIXTURES_DIR, 'wentzelDr_detail.html'))) ?? '';
+      }
+      return { ok: true, status: 200, text: () => Promise.resolve(wentzelDrDetail) };
+    }
 
     // willhaben reads its results out of the page's __NEXT_DATA__, so this is the one fixture
     // served as text rather than json.

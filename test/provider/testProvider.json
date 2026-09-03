@@ -76,5 +76,9 @@
   "flatfox": {
     "url": "https://flatfox.ch/de/search/?east=8.62&north=47.43&south=47.32&west=8.44&object_category=APARTMENT&offer_type=RENT",
     "enabled": true
+  },
+  "wentzelDr": {
+    "url": "https://wentzel-dr.de/immobilien/?frymo_query=%7B%2268389%22%3A%7B%22marketing_type%22%3A%22218%22%2C%22search_string%22%3A%22Hamburg%22%2C%22s_fields%22%3A%22title%2Cexternal_id%2Czip_code%2Clocation%2Cinternal_id%22%7D%7D",
+    "enabled": true
   }
 }
