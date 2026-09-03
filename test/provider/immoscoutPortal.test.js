@@ -51,7 +51,11 @@ describe('#immoscoutPortal testsuite()', () => {
       /** check the values if possible **/
       expect(notify.title).not.toBe('');
       expect(notify.address).not.toBe('');
+      // the recorded page carries seven offices and two parking spaces among the homes
+      expect(notify.title).not.toMatch(/Gewerbe|Büro|Stellpl/i);
     });
+    // 15 cards on the page: four flats, two houses, and nine that are not homes
+    expect(notificationObj.payload.length).toBe(6);
   });
 
   it('enriches a listing from the exposé', async () => {
@@ -139,6 +143,32 @@ describe('immoscoutPortal normalize', () => {
     expect(shuffled.rooms).toBe(2);
     expect(shuffled.price).toBe(984.9);
     expect(shuffled.size).toBe(65.3);
+  });
+
+  it('does not read a rent per square metre as the price', () => {
+    const office = provider.config.normalize({
+      ...card,
+      type: 'Büros/Praxen',
+      label1: 'Miete pro Quadratmeter',
+      value1: '€ 16,50',
+      label2: 'Büro-/Praxisfläche',
+      value2: '95 m²',
+      label3: null,
+      value3: null,
+    });
+    expect(office.price).toBeNull();
+    expect(office.size).toBe(95);
+  });
+
+  it('lets only flats and houses through the filter', () => {
+    const runConfig = provider.createConfig({ url: 'https://portal.immobilienscout24.de/ergebnisliste/1' }, []);
+    const of = (type) => runConfig.filter(provider.config.normalize({ ...card, type }));
+    expect(of('Wohnung zur Miete')).toBe(true);
+    expect(of('Haus zum Kauf')).toBe(true);
+    expect(of(null)).toBe(true);
+    expect(of('Büros/Praxen')).toBe(false);
+    expect(of('Garage/Stellplatz/Miete')).toBe(false);
+    expect(of('Gewerbe zur Miete')).toBe(false);
   });
 
   it('keeps the id stable across sessions and changes it with the price', () => {
