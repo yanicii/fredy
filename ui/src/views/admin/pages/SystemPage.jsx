@@ -32,6 +32,10 @@ export default function SystemPage() {
 
   return (
     <div className="settingsShell__page">
+      {/* Ten cards deep, and the first of them is "Port" - so without this line the reader never
+          learns what the page as a whole is for. Only the two long pages get one: on a page with
+          a single card, its own help text already is the introduction. */}
+      <p className="settingsShell__pageIntro">{t('admin.system.pageIntro')}</p>
       <SegmentPart name={t('settings.port')} helpText={t('settings.portHelp')}>
         <InputNumber
           min={0}
@@ -71,6 +75,35 @@ export default function SystemPage() {
           formatter={(value) => `${value}`.replace(/\D/g, '')}
           onChange={(value) => setField('listingRetentionDays', value)}
           suffix={t('settings.listingRetentionSuffix')}
+          style={{ maxWidth: 200 }}
+        />
+      </SegmentPart>
+
+      <SegmentPart name={t('settings.listingAttachmentMaxMb')} helpText={t('settings.listingAttachmentMaxMbHelp')}>
+        <InputNumber
+          min={1}
+          max={50}
+          placeholder={t('settings.listingAttachmentMaxMbPlaceholder')}
+          value={form.listingAttachmentMaxMb}
+          formatter={(value) => `${value}`.replace(/\D/g, '')}
+          onChange={(value) => setField('listingAttachmentMaxMb', value)}
+          suffix={t('settings.listingAttachmentMaxMbSuffix')}
+          style={{ maxWidth: 200 }}
+        />
+      </SegmentPart>
+
+      <SegmentPart
+        name={t('settings.listingAttachmentMaxPerListing')}
+        helpText={t('settings.listingAttachmentMaxPerListingHelp')}
+      >
+        <InputNumber
+          min={1}
+          max={200}
+          placeholder={t('settings.listingAttachmentMaxPerListingPlaceholder')}
+          value={form.listingAttachmentMaxPerListing}
+          formatter={(value) => `${value}`.replace(/\D/g, '')}
+          onChange={(value) => setField('listingAttachmentMaxPerListing', value)}
+          suffix={t('settings.listingAttachmentMaxPerListingSuffix')}
           style={{ maxWidth: 200 }}
         />
       </SegmentPart>

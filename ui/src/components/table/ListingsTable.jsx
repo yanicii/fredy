@@ -10,6 +10,7 @@ import {
   IconMapPin,
   IconStar,
   IconStarStroked,
+  IconCopy,
   IconEyeOpened,
   IconRefresh,
 } from '@douyinfe/semi-icons';
@@ -20,13 +21,15 @@ import StatusControl from '../listings/StatusControl.jsx';
 import ExternalListingLink from '../listings/ExternalListingLink.jsx';
 import AffordabilityChip from '../listings/AffordabilityChip.jsx';
 import PriceChangeBadge from '../listings/PriceChangeBadge.jsx';
+import PricePerSqmBadge from '../listings/PricePerSqmBadge.jsx';
+import ScamBadge from '../listings/ScamBadge.jsx';
 import CommuteBadge from '../transit/CommuteBadge.jsx';
 
 import './ListingsTable.less';
 import { useTranslation, useLocale } from '../../services/i18n/i18n.jsx';
 
 /**
- * @param {{ listings: object[], onWatch: Function, onNavigate: Function, onDelete: Function, onRestore?: Function, onReactivate?: Function, isHiddenView?: boolean, onStatusChange: Function }} props
+ * @param {{ listings: object[], onWatch: Function, onNavigate: Function, onDelete: Function, onRestore?: Function, onReactivate?: Function, isHiddenView?: boolean, onStatusChange: Function, onApplication?: Function }} props
  */
 const ListingsTable = ({
   listings,
@@ -37,6 +40,7 @@ const ListingsTable = ({
   onReactivate,
   isHiddenView = false,
   onStatusChange,
+  onApplication,
 }) => {
   const t = useTranslation();
   const locale = useLocale();
@@ -64,7 +68,8 @@ const ListingsTable = ({
           </div>
 
           <div className="listingsTable__row__title" title={item.title}>
-            {item.title}
+            <ScamBadge listing={item} compact />
+            <span className="listingsTable__row__title-text">{item.title}</span>
           </div>
 
           <div className="listingsTable__row__price">
@@ -77,6 +82,7 @@ const ListingsTable = ({
                   previousPrice={item.previous_price}
                   changedAt={item.price_changed_at}
                 />
+                <PricePerSqmBadge listing={item} />
               </>
             ) : (
               <span className="listingsTable__row__empty">---</span>
@@ -102,7 +108,12 @@ const ListingsTable = ({
             {item.provider}
           </div>
 
-          <div className="listingsTable__row__date">{timeService.format(item.created_at, false, locale)}</div>
+          {/* The portal's own publication date, falling back to the day Fredy first saw the
+              advert - the same expression the grid renders and the same one the default sort
+              orders by, so the column cannot disagree with the order it is sorted in. */}
+          <div className="listingsTable__row__date">
+            {timeService.format(item.published_at ?? item.created_at, false, locale)}
+          </div>
 
           <div
             className="listingsTable__row__actions"
@@ -144,6 +155,22 @@ const ListingsTable = ({
                 }}
               />
             </Tooltip>
+            {/* Not in the hidden view: the row is soft-deleted there, and writing to an agent
+                about a listing you have just thrown away is noise. */}
+            {!isHiddenView && (
+              <Tooltip content={t('listings.tooltipApplication')}>
+                <Button
+                  size="small"
+                  icon={<IconCopy />}
+                  theme="borderless"
+                  aria-label={t('listings.tooltipApplication')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApplication?.(item);
+                  }}
+                />
+              </Tooltip>
+            )}
             {/* Mirrors the grid card: only where the alive-checker marked the row gone, and never in
                 the hidden view, where undelete is the action that matters. */}
             {!item.is_active && !isHiddenView && (

@@ -9,8 +9,10 @@ import {
   IconCart,
   IconDelete,
   IconMapPin,
+  IconPaperclip,
   IconStar,
   IconStarStroked,
+  IconCopy,
   IconEyeOpened,
   IconRefresh,
 } from '@douyinfe/semi-icons';
@@ -21,13 +23,15 @@ import StatusControl from '../../listings/StatusControl.jsx';
 import ExternalListingLink from '../../listings/ExternalListingLink.jsx';
 import AffordabilityChip from '../../listings/AffordabilityChip.jsx';
 import PriceChangeBadge from '../../listings/PriceChangeBadge.jsx';
+import PricePerSqmBadge from '../../listings/PricePerSqmBadge.jsx';
+import ScamBadge from '../../listings/ScamBadge.jsx';
 import CommuteBadge from '../../transit/CommuteBadge.jsx';
 
 import './ListingsGrid.less';
 import { useTranslation, useLocale } from '../../../services/i18n/i18n.jsx';
 
 /**
- * @param {{ listings: object[], onWatch: Function, onNavigate: Function, onDelete: Function, onRestore?: Function, onReactivate?: Function, isHiddenView?: boolean, onStatusChange: Function }} props
+ * @param {{ listings: object[], onWatch: Function, onNavigate: Function, onDelete: Function, onRestore?: Function, onReactivate?: Function, isHiddenView?: boolean, onStatusChange: Function, onApplication?: Function }} props
  */
 const ListingsGrid = ({
   listings,
@@ -38,6 +42,7 @@ const ListingsGrid = ({
   onReactivate,
   isHiddenView = false,
   onStatusChange,
+  onApplication,
 }) => {
   const t = useTranslation();
   const locale = useLocale();
@@ -90,6 +95,10 @@ const ListingsGrid = ({
             <div className="listingsGrid__card__title" title={item.title}>
               {item.title}
             </div>
+            {/* Above the price rather than beside it. A fraud warning is not another attribute of
+                the flat to be weighed against the rent, it is a reason to read the rest
+                differently, so it comes first. */}
+            <ScamBadge listing={item} />
             {item.price && (
               <div className="listingsGrid__card__price">
                 <IconCart size="small" />
@@ -100,6 +109,9 @@ const ListingsGrid = ({
                   previousPrice={item.previous_price}
                   changedAt={item.price_changed_at}
                 />
+                {/* Next to the price rather than on a line of its own: it is the same figure said
+                    a second way, and reading the two together is the whole point. */}
+                <PricePerSqmBadge listing={item} />
               </div>
             )}
             {item.address && (
@@ -115,7 +127,23 @@ const ListingsGrid = ({
             {/* Compact on purpose: on a card the commute is a number you scan past twenty others,
                 not something you read. The detail page shows the full picture. */}
             <CommuteBadge travelTimes={item.travelTimes} jobId={item.job_id} />
-            <div className="listingsGrid__card__provider">{timeService.format(item.created_at, false, locale)}</div>
+            {/* Only when there is something to say. A count of nothing on every card would be
+                twenty lines of noise to surface the handful that carry documents - and those are
+                also the listings that survive the retention purge, which is worth spotting. */}
+            {item.attachmentCount > 0 && (
+              <div className="listingsGrid__card__meta">
+                <IconPaperclip />
+                {item.attachmentCount === 1
+                  ? t('listings.cardDocumentsOne')
+                  : t('listings.cardDocuments', { count: item.attachmentCount })}
+              </div>
+            )}
+            {/* The date the list is ordered by: the portal's own, where it states one, and the
+                moment Fredy found the listing where it does not. The detail page tells the two
+                apart. */}
+            <div className="listingsGrid__card__provider">
+              {timeService.format(item.published_at ?? item.created_at, false, locale)}
+            </div>
           </div>
 
           <div
@@ -142,6 +170,22 @@ const ListingsGrid = ({
                 }}
               />
             </Tooltip>
+            {/* Not in the hidden view: the row is soft-deleted there, and writing to an agent
+                about a listing you have just thrown away is noise. */}
+            {!isHiddenView && (
+              <Tooltip content={t('listings.tooltipApplication')}>
+                <Button
+                  size="small"
+                  icon={<IconCopy />}
+                  theme="borderless"
+                  aria-label={t('listings.tooltipApplication')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApplication?.(item);
+                  }}
+                />
+              </Tooltip>
+            )}
             {/* Only offered where it can do something: the alive-checker marked this one gone, and
                 the user is presumably looking at the ad that says otherwise. Not shown in the
                 hidden view, where the row is soft-deleted and undelete is the action that matters. */}

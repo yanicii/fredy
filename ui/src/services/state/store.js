@@ -453,6 +453,21 @@ export const useFredyState = create(
               throw Exception;
             }
           },
+          /**
+           * Record what the user decided about a scam warning, or hand the listing back to the
+           * detector by passing `null`.
+           *
+           * @param {string} listingId
+           * @param {('scam'|'safe'|null)} override
+           */
+          async setListingScamOverride(listingId, override) {
+            try {
+              await xhrPost(`/api/listings/${listingId}/scam`, { override });
+            } catch (Exception) {
+              console.error(`Error while trying to set the scam verdict for listing ${listingId}. Error:`, Exception);
+              throw Exception;
+            }
+          },
           async setListingNotes(listingId, notes) {
             try {
               await xhrPost(`/api/listings/${listingId}/notes`, { notes });
@@ -484,6 +499,32 @@ export const useFredyState = create(
               await xhrPost('/api/listings/restore', { ids });
             } catch (Exception) {
               console.error('Error while trying to restore listings. Error:', Exception);
+              throw Exception;
+            }
+          },
+          /**
+           * Delete every listing the given filter matches, however many pages that spans.
+           *
+           * Takes the same payload `getListingsData` sends, because the point of the button behind
+           * this is that it removes what the page is showing. Paging the ids out and sending them
+           * back would race anything the scheduler stored in between.
+           *
+           * @param {Object} params
+           * @param {string|null} [params.freeTextFilter]
+           * @param {Object} [params.filter] - As built by `toListingsQuery`.
+           * @param {boolean} [params.hardDelete=false]
+           * @returns {Promise<number>} How many listings the server removed.
+           */
+          async deleteFilteredListings({ freeTextFilter = null, filter = {}, hardDelete = false }) {
+            try {
+              const response = await xhrDelete('/api/listings/filtered', {
+                freeTextFilter,
+                ...filter,
+                hardDelete,
+              });
+              return response.json?.deleted ?? 0;
+            } catch (Exception) {
+              console.error('Error while trying to delete the filtered listings. Error:', Exception);
               throw Exception;
             }
           },
@@ -712,6 +753,58 @@ export const useFredyState = create(
               }));
             } catch (Exception) {
               console.error('Error while trying to update theme setting. Error:', Exception);
+              throw Exception;
+            }
+          },
+
+          /**
+           * Save or clear the applicant profile every application letter is written from.
+           *
+           * Passing null clears it, which is also what empties the letters back down to the
+           * listing's own details.
+           *
+           * @param {Object|null} applicantProfile
+           * @returns {Promise<void>}
+           */
+          async setApplicantProfile(applicantProfile) {
+            try {
+              await xhrPost('/api/user/settings/applicant-profile', { applicant_profile: applicantProfile });
+              set((state) => ({
+                userSettings: {
+                  ...state.userSettings,
+                  settings: { ...state.userSettings.settings, applicant_profile: applicantProfile },
+                },
+              }));
+            } catch (Exception) {
+              console.error('Error while trying to update the applicant profile. Error:', Exception);
+              throw Exception;
+            }
+          },
+
+          /**
+           * Save the user's own application letter templates.
+           *
+           * The whole bundle is written at once rather than one language at a time: the editor
+           * holds all of them anyway, and a per-entry route would need the same server-side merge
+           * the finance profile needed for exactly one form.
+           *
+           * @param {Object|null} applicationTemplates Shape `{ de: { rent, buy }, … }`, or null to
+           *   fall back to the shipped letters everywhere.
+           * @returns {Promise<void>}
+           */
+          async setApplicationTemplates(applicationTemplates) {
+            try {
+              await xhrPost('/api/user/settings/application-templates', {
+                application_templates: applicationTemplates,
+              });
+              set((state) => ({
+                userSettings: {
+                  ...state.userSettings,
+                  settings: { ...state.userSettings.settings, application_templates: applicationTemplates },
+                },
+              }));
+            } catch (Exception) {
+              console.error('Error while trying to update the application templates. Error:', Exception);
               throw Exception;
             }
           },
