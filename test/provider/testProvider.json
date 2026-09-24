@@ -24,6 +24,10 @@
     "url": "https://www.immobilienscout24.de/Suche/de/nordrhein-westfalen/duesseldorf/wohnung-mieten?enteredFrom=one_step_search",
     "enabled": true
   },
+  "immoscoutAt": {
+    "url": "https://www.immobilienscout24.at/regional/wien/wien/wohnung-mieten",
+    "enabled": true
+  },
   "immoswp": {
     "url": "https://immo.swp.de/suchergebnisse?l=M%C3%BCnchen&r=0km&_multiselect_r=0km&ut=private&t=apartment%3Arental&a=de.muenchen&pf=&pt=&rf=0&rt=0&sf=50&st=&yf=&yt=&ff=&ft=&s=most_recently_updated_first&pa=&o=&ad=&u=",
     "enabled": true
@@ -113,6 +117,10 @@
   },
   "wentzelDr": {
     "url": "https://wentzel-dr.de/immobilien/?frymo_query=%7B%2268389%22%3A%7B%22marketing_type%22%3A%22218%22%2C%22search_string%22%3A%22Hamburg%22%2C%22s_fields%22%3A%22title%2Cexternal_id%2Czip_code%2Clocation%2Cinternal_id%22%7D%7D",
+    "enabled": true
+  },
+  "betterhomes": {
+    "url": "https://www.betterhomes.de/de/immobilie-suchen/kaufen?searchType=buy&objectType=all&zipCity=Bundesland+Berlin&territoryId=3&cityType=3&radius=0&sortOrder=newestDesc",
     "enabled": true
   }
 }
