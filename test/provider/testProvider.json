@@ -1,4 +1,20 @@
 {
+  "thor": {
+    "url": "https://www.thor.de/privat/list",
+    "enabled": true
+  },
+  "immoscoutPortal": {
+    "url": "https://portal.immobilienscout24.de/ergebnisliste/84239610",
+    "enabled": true
+  },
+  "grothSchneider": {
+    "url": "https://www.grothschneider.de/aktuelle-angebote/?typ%5B%5D=Wohnung&art%5B%5D=Miete",
+    "enabled": true
+  },
+  "wentzelDr": {
+    "url": "https://wentzel-dr.de/immobilien/?frymo_query=%7B%2268389%22%3A%7B%22marketing_type%22%3A%22218%22%2C%22search_string%22%3A%22Hamburg%22%2C%22s_fields%22%3A%22title%2Cexternal_id%2Czip_code%2Clocation%2Cinternal_id%22%7D%7D",
+    "enabled": true
+  },
   "einsAImmobilien": {
     "url": "https://www.1a-immobilienmarkt.de/suchen/duesseldorf/wohnung-kaufen.html?search=yes&cfid=98b39c7e-b403-4764-8f3c-57bf590923d0&data_hash=f46f89548257740094dd708996adcd68&sort_type=newest",
     "enabled": true,
@@ -101,22 +117,6 @@
   },
   "subito": {
     "url": "https://www.subito.it/annunci-lazio/affitto/appartamenti/roma/",
-    "enabled": true
-  },
-  "thor": {
-    "url": "https://www.thor.de/privat/list",
-    "enabled": true
-  },
-  "immoscoutPortal": {
-    "url": "https://portal.immobilienscout24.de/ergebnisliste/84239610",
-    "enabled": true
-  },
-  "grothSchneider": {
-    "url": "https://www.grothschneider.de/aktuelle-angebote/?typ%5B%5D=Wohnung&art%5B%5D=Miete",
-    "enabled": true
-  },
-  "wentzelDr": {
-    "url": "https://wentzel-dr.de/immobilien/?frymo_query=%7B%2268389%22%3A%7B%22marketing_type%22%3A%22218%22%2C%22search_string%22%3A%22Hamburg%22%2C%22s_fields%22%3A%22title%2Cexternal_id%2Czip_code%2Clocation%2Cinternal_id%22%7D%7D",
     "enabled": true
   },
   "betterhomes": {

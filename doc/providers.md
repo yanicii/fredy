@@ -7,7 +7,7 @@ platform into Fredy.
 > Always make sure the search results are sorted by **date**, so Fredy picks up the newest listings
 > first.
 
-## The 30 built-in providers
+## The 26 built-in providers
 
 **🇩🇪 Germany**
 
@@ -18,8 +18,7 @@ platform into Fredy.
 | Engel & Völkers | Immoscout | Regionalimmobilien24 |
 | IMAXX | Immowelt | Schwarzes Brett Bremen |
 | InBerlinWohnen | Kleinanzeigen | Sparkasse Immobilien |
-| McMakler | Wg gesucht | Wentzel Dr. |
-| Groth & Schneider | ImmoScout24 Portal | Thor |
+| McMakler | Wg gesucht | |
 
 **🇩🇪 Germany · 🇦🇹 Austria · 🇨🇭 Switzerland** · BETTERHOMES
 **🇦🇹 Austria** · willhaben · Immoscout Österreich

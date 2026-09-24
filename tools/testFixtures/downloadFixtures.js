@@ -9,6 +9,7 @@ import { readFile, readdir, rm, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { extractFirstDetailUrl } from './extractDetailUrl.js';
+import { FORK_DOWNLOADERS } from './forkDownloaders.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '../..');
@@ -387,97 +388,6 @@ async function downloadFlatfoxFixtures(url) {
   const listings = await listingResponse.json();
   await writeFile(path.join(FIXTURES_DIR, 'flatfox_listings.json'), JSON.stringify(listings, null, 2), 'utf-8');
   console.log('  Saved flatfox_listings.json');
-}
-
-/**
- * Wentzel Dr. renders its search through WordPress' admin-ajax.php, so the fixture is that
- * endpoint's answer for the configured search rather than the search page itself, which is the
- * same unfiltered ten cards whatever the url says. The detail fixture is the first card's exposé.
- *
- * @param {import('../../lib/types/providerConfig.js').ProviderConfig} runConfig the initialized provider config
- * @returns {Promise<void>}
- */
-async function downloadWentzelDrFixtures(runConfig) {
-  console.log('\nDownloading wentzelDr...');
-
-  const { searchFiltersOf, fetchListingPage } = await import('../../lib/provider/wentzelDr.js');
-  const html = await fetchListingPage(searchFiltersOf(runConfig.url), 1);
-  if (!html) {
-    console.warn('  Failed to download wentzelDr listing page');
-    return;
-  }
-
-  await writeFile(path.join(FIXTURES_DIR, 'wentzelDr.html'), html, 'utf-8');
-  console.log('  Saved wentzelDr.html');
-
-  const detailUrl = extractFirstDetailUrl(html, runConfig);
-  if (!detailUrl) {
-    console.warn('  Could not find detail URL in wentzelDr list page');
-    return;
-  }
-
-  console.log(`  Downloading wentzelDr detail (${detailUrl})...`);
-  const detailResponse = await fetch(detailUrl, { headers: { 'User-Agent': BROWSER_USER_AGENT } });
-  if (!detailResponse.ok) {
-    console.warn(`  Failed to download wentzelDr detail: ${detailResponse.statusText}`);
-    return;
-  }
-
-  await writeFile(path.join(FIXTURES_DIR, 'wentzelDr_detail.html'), await detailResponse.text(), 'utf-8');
-  console.log('  Saved wentzelDr_detail.html');
-}
-
-/**
- * The ImmoScout24 portal lists arrive sorted by price unless a sort is posted into a session, and
- * the provider does exactly that. Its list fetch is reused so the fixture is the newest-first page
- * the provider reads live; the detail fixture is the first card's exposé.
- *
- * @param {import('../../lib/types/providerConfig.js').ProviderConfig} runConfig the initialized provider config
- * @returns {Promise<void>}
- */
-async function downloadImmoscoutPortalFixtures(runConfig) {
-  console.log('\nDownloading immoscoutPortal...');
-
-  const portalId = runConfig.url.match(/\/ergebnisliste\/(\d+)/)?.[1];
-  if (!portalId) {
-    console.warn(`  Not a portal list url: ${runConfig.url}`);
-    return;
-  }
-  const listUrl = `https://portal.immobilienscout24.de/ergebnisliste/${portalId}`;
-  const headers = { 'User-Agent': BROWSER_USER_AGENT, 'Accept-Language': 'de-DE,de;q=0.9' };
-
-  const first = await fetch(listUrl, { headers });
-  if (!first.ok) {
-    console.warn(`  Failed to download immoscoutPortal list: ${first.statusText}`);
-    return;
-  }
-  const sid = (await first.text()).match(/name="sid"\s+value="([^"]+)"/)?.[1];
-
-  const sorted = await fetch(`${listUrl}/1?sid=${sid}`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-    body: new URLSearchParams({ sid: sid ?? '', 'sorting[sorting]': 'FirstActivation:DESC' }),
-  });
-  if (!sorted.ok) {
-    console.warn(`  Failed to download the sorted immoscoutPortal list: ${sorted.statusText}`);
-    return;
-  }
-  const html = await sorted.text();
-  await writeFile(path.join(FIXTURES_DIR, 'immoscoutPortal.html'), html, 'utf-8');
-  console.log('  Saved immoscoutPortal.html');
-
-  const detailPath = html.match(/href="(\/expose\/\d+\/\d+[^"?]*)/)?.[1];
-  if (!detailPath) {
-    console.warn('  Could not find detail URL in immoscoutPortal list page');
-    return;
-  }
-  const detail = await fetch(`https://portal.immobilienscout24.de${detailPath}`, { headers });
-  if (!detail.ok) {
-    console.warn(`  Failed to download immoscoutPortal detail: ${detail.statusText}`);
-    return;
-  }
-  await writeFile(path.join(FIXTURES_DIR, 'immoscoutPortal_detail.html'), await detail.text(), 'utf-8');
-  console.log('  Saved immoscoutPortal_detail.html');
 }
 
 /**
@@ -891,6 +801,11 @@ async function main() {
     // deutscheWohnen's JSON endpoint).
     const runConfig = provider.createConfig(cfg, [], []);
 
+    if (FORK_DOWNLOADERS[name]) {
+      await FORK_DOWNLOADERS[name](runConfig);
+      continue;
+    }
+
     switch (name) {
       case 'immoscout':
       case 'immoscoutAt':
@@ -907,12 +822,6 @@ async function main() {
         break;
       case 'flatfox':
         await downloadFlatfoxFixtures(runConfig.url);
-        break;
-      case 'wentzelDr':
-        await downloadWentzelDrFixtures(runConfig);
-        break;
-      case 'immoscoutPortal':
-        await downloadImmoscoutPortalFixtures(runConfig);
         break;
       case 'betterhomes':
         await downloadBetterhomesFixtures(runConfig.url);

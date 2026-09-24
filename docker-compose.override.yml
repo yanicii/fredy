@@ -1,0 +1,9 @@
+# Fork-only compose settings. `docker compose` merges this file over docker-compose.yml on its own,
+# so docker-compose.yml stays upstream's.
+services:
+  fredy:
+    # Tagged under OUR namespace on purpose. This compose BUILDS from the local source - the tag is
+    # just a local name. Tagging it ghcr.io/orangecoding/fredy would mean a stray
+    # `docker compose pull` silently replaces this fork's build with upstream's image.
+    image: ghcr.io/yanicii/fredy:local
+    pull_policy: never

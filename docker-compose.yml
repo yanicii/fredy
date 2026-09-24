@@ -4,12 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # Tagged under OUR namespace on purpose. This compose BUILDS from the
-    # local source (see build: above) - the tag is just a local name. Tagging
-    # it ghcr.io/orangecoding/fredy would mean a stray `docker compose pull`
-    # silently replaces this fork's build with upstream's image.
-    image: ghcr.io/yanicii/fredy:local
-    pull_policy: never
+    image: ghcr.io/orangecoding/fredy
     environment:
       - NODE_ENV=production
     volumes:

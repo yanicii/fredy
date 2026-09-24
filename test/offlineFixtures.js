@@ -6,6 +6,7 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { forkFetchRoute } from './fork/offlineRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, 'testFixtures');
@@ -222,55 +223,14 @@ export function buildFetchMock() {
   let willhabenHtml = null;
   let flatfoxPins = null;
   let flatfoxListings = null;
-  let wentzelDrListing = null;
-  let wentzelDrDetail = null;
-  let portalListing = null;
-  let portalDetail = null;
   let betterhomesList = null;
   let betterhomesDetail = null;
 
   return async (url, init) => {
     const urlStr = String(url);
     const requestBody = new URLSearchParams(typeof init?.body === 'string' ? init.body : '');
-
-    // The ImmoScout24 portal is read in three steps - list page for a session id, a POST that
-    // stores the sort, then the pages - and every one of them is served the same sorted fixture,
-    // except later pages, which are empty so the paging ends where the fixture does.
-    if (urlStr.includes('portal.immobilienscout24.de/ergebnisliste/')) {
-      if (portalListing == null) {
-        portalListing = (await tryReadFile(path.join(FIXTURES_DIR, 'immoscoutPortal.html'))) ?? '';
-      }
-      const isLaterPage = /\/ergebnisliste\/\d+\/([2-9]|\d{2,})/.test(urlStr);
-      const html = isLaterPage ? '<ul class="result__list"></ul>' : portalListing;
-      return { ok: true, status: 200, text: () => Promise.resolve(html) };
-    }
-
-    if (urlStr.includes('portal.immobilienscout24.de/expose/')) {
-      if (portalDetail == null) {
-        portalDetail = (await tryReadFile(path.join(FIXTURES_DIR, 'immoscoutPortal_detail.html'))) ?? '';
-      }
-      return { ok: true, status: 200, text: () => Promise.resolve(portalDetail) };
-    }
-
-    // Wentzel Dr. posts its search to WordPress' admin-ajax.php and gets the rendered cards back.
-    // The fixture is one page; any later page is answered empty so the provider's paging stops
-    // where the live site's would.
-    if (urlStr.includes('wentzel-dr.de/wp-admin/admin-ajax.php')) {
-      if (wentzelDrListing == null) {
-        wentzelDrListing = (await tryReadFile(path.join(FIXTURES_DIR, 'wentzelDr.html'))) ?? '';
-      }
-      const body = String(init?.body ?? '');
-      const isLaterPage = /pagenum/.test(decodeURIComponent(body));
-      const html = isLaterPage ? '<div class="frymo-listing"></div>' : wentzelDrListing;
-      return { ok: true, status: 200, text: () => Promise.resolve(html) };
-    }
-
-    if (urlStr.includes('wentzel-dr.de/immobilie/')) {
-      if (wentzelDrDetail == null) {
-        wentzelDrDetail = (await tryReadFile(path.join(FIXTURES_DIR, 'wentzelDr_detail.html'))) ?? '';
-      }
-      return { ok: true, status: 200, text: () => Promise.resolve(wentzelDrDetail) };
-    }
+    const forkResponse = await forkFetchRoute(urlStr, init);
+    if (forkResponse) return forkResponse;
 
     // willhaben reads its results out of the page's __NEXT_DATA__, so this is the one fixture
     // served as text rather than json.
